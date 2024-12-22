@@ -27,6 +27,7 @@ import GameScreen from './screens/GameScreen';
 import DoctorsScreen from './screens/DoctorsScreen';
 
 import EmergencyService from './services/EmergencyService';
+import AnimatedSplash from './components/AnimatedSplash';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -156,6 +157,7 @@ function TabNavigator() {
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -167,7 +169,11 @@ export default function App() {
   }, []);
 
   if (loading) {
-    return null; // Or a loading spinner
+    return null;
+  }
+
+  if (showSplash) {
+    return <AnimatedSplash onAnimationComplete={() => setShowSplash(false)} />;
   }
 
   return (

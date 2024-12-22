@@ -82,22 +82,59 @@ export default function JournalScreen() {
     };
   }, []);
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Sorry, we need camera roll permissions to make this work!');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
+  useEffect(() => {
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        // Handle unauthenticated state if needed
+        console.log('User not authenticated');
+      }
     });
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+    return () => {
+      unsubscribeAuth();
+    };
+  }, []);
+
+  const pickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Sorry, we need camera roll permissions to make this work!');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.7,
+        base64: true,
+      });
+
+      if (!result.canceled) {
+        try {
+          const userId = auth.currentUser?.uid;
+          if (!userId) {
+            Alert.alert('Error', 'User not authenticated');
+            return;
+          }
+
+          // Generate a unique key for the image
+          const imageKey = `journal_image_${userId}_${Date.now()}`;
+          
+          // Save image URI to AsyncStorage
+          await AsyncStorage.setItem(imageKey, result.assets[0].uri);
+
+          // Set the image URI directly
+          setImage(result.assets[0].uri);
+        } catch (error) {
+          console.error('Error saving image:', error);
+          Alert.alert('Error', 'Failed to save image');
+        }
+      }
+    } catch (error) {
+      console.error('Image picker error:', error);
+      Alert.alert('Error', 'Failed to pick image');
     }
   };
 
@@ -168,12 +205,17 @@ export default function JournalScreen() {
   };
 
   const addEntry = async () => {
-    if (!selectedMood) {
-      Alert.alert('Please select your mood first');
-      return;
-    }
+    try {
+      if (!selectedMood) {
+        Alert.alert('Please select your mood first');
+        return;
+      }
 
-    if (newEntry.trim() && newTitle.trim() && userId) {
+      if (!newEntry.trim() || !newTitle.trim() || !userId) {
+        Alert.alert('Error', 'Please fill in all required fields');
+        return;
+      }
+
       const entriesRef = ref(database, `journal_entries/${userId}`);
       await push(entriesRef, {
         title: newTitle,
@@ -191,6 +233,9 @@ export default function JournalScreen() {
       setSelectedMood(null);
       setImage(null);
       setSound(null);
+    } catch (error) {
+      console.error('Add entry error:', error);
+      Alert.alert('Error', 'Failed to save journal entry');
     }
   };
 
