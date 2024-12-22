@@ -24,6 +24,7 @@ import MeditationScreen from './screens/MeditationScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import EmergencyContactsScreen from './screens/EmergencyContactsScreen';
 import GameScreen from './screens/GameScreen';
+import DoctorsScreen from './screens/DoctorsScreen';
 
 import EmergencyService from './services/EmergencyService';
 
@@ -55,6 +56,8 @@ function TabNavigator() {
             iconName = focused ? 'leaf' : 'leaf-outline';
           } else if (route.name === 'Game') {
             iconName = focused ? 'game-controller' : 'game-controller-outline';
+          } else if (route.name === 'Doctors') {
+            iconName = focused ? 'medical' : 'medical-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           } else if (route.name === 'Emergency') {
@@ -109,6 +112,16 @@ function TabNavigator() {
       <Tab.Screen 
         name="Game" 
         component={GameScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Tab.Screen 
+        name="Doctors" 
+        component={DoctorsScreen}
         options={{
           headerStyle: {
             backgroundColor: theme.colors.primary,

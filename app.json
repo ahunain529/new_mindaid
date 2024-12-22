@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MindBloom",
-    "slug": "mindbloom",
+    "name": "MindAid",
+    "slug": "mindAid",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
