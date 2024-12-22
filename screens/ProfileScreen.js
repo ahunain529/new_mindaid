@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -15,6 +15,9 @@ import { auth, database } from '../config/firebase';
 import { ref, onValue, update, get } from 'firebase/database';
 import * as ImagePicker from 'expo-image-picker';
 import { signOut, updateEmail, updatePassword } from 'firebase/auth';
+import CameraModal from '../components/CameraModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BottomSheet } from 'react-native-btr';
 
 const theme = {
   colors: {
@@ -33,6 +36,9 @@ export default function ProfileScreen() {
   const [editField, setEditField] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isCameraVisible, setIsCameraVisible] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const userId = auth.currentUser?.uid;
 
@@ -133,30 +139,45 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleProfilePictureUpdate = () => {
+    setIsBottomSheetVisible(true);
+  };
+
   const handlePickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Sorry, we need camera roll permissions to make this work!');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      try {
-        // Here you would typically upload the image to storage
-        // For now, we'll just update the photoURL in the database
-        await update(ref(database, `users/${userId}`), {
-          photoURL: result.assets[0].uri,
-        });
-      } catch (error) {
-        Alert.alert('Error', 'Failed to update profile picture');
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Sorry, we need camera roll permissions to make this work!');
+        return;
       }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled) {
+        const userId = auth.currentUser?.uid;
+        if (!userId) return;
+
+        // Save image URI to AsyncStorage
+        await AsyncStorage.setItem(`profile_image_${userId}`, result.assets[0].uri);
+
+        // Update profile photo URL in database
+        const userRef = ref(database, `users/${userId}`);
+        await update(userRef, {
+          photoURL: result.assets[0].uri
+        });
+
+        // Update local state
+        setProfileImage(result.assets[0].uri);
+        Alert.alert('Success', 'Profile photo updated successfully');
+      }
+    } catch (error) {
+      console.error('Gallery pick error:', error);
+      Alert.alert('Error', 'Failed to update profile picture');
     }
   };
 
@@ -167,6 +188,83 @@ export default function ProfileScreen() {
       Alert.alert('Error', error.message);
     }
   };
+
+  const handleProfilePhoto = async (photo) => {
+    try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+
+      // Save image URI to AsyncStorage
+      await AsyncStorage.setItem(`profile_image_${userId}`, photo.uri);
+
+      // Update profile photo URL in database
+      const userRef = ref(database, `users/${userId}`);
+      await update(userRef, {
+        photoURL: photo.uri
+      });
+
+      // Update local state
+      setProfileImage(photo.uri);
+      Alert.alert('Success', 'Profile photo updated successfully');
+    } catch (error) {
+      console.error('Profile photo error:', error);
+      Alert.alert('Error', 'Failed to update profile photo');
+    }
+  };
+
+  // Add this useEffect to load saved image on startup
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      try {
+        const userId = auth.currentUser?.uid;
+        if (!userId) return;
+        
+        const savedImage = await AsyncStorage.getItem(`profile_image_${userId}`);
+        if (savedImage) {
+          setProfileImage(savedImage);
+        }
+      } catch (error) {
+        console.error('Error loading profile image:', error);
+      }
+    };
+
+    loadProfileImage();
+  }, []);
+
+  const renderBottomSheet = () => (
+    <View style={styles.bottomSheetContent}>
+      <Text style={styles.bottomSheetTitle}>Update Profile Picture</Text>
+      
+      <TouchableOpacity 
+        style={styles.bottomSheetOption}
+        onPress={() => {
+          setIsBottomSheetVisible(false);
+          setIsCameraVisible(true);
+        }}
+      >
+        <Ionicons name="camera" size={24} color={theme.colors.primary} />
+        <Text style={styles.bottomSheetOptionText}>Take Photo</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.bottomSheetOption}
+        onPress={() => {
+          setIsBottomSheetVisible(false);
+          handlePickImage();
+        }}
+      >
+        <Ionicons name="images" size={24} color={theme.colors.primary} />
+        <Text style={styles.bottomSheetOptionText}>Choose from Gallery</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={[styles.bottomSheetOption, styles.cancelOption]}
+        onPress={() => setIsBottomSheetVisible(false)}
+      >
+        <Text style={[styles.bottomSheetOptionText, styles.cancelText]}>Cancel</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   if (loading) {
     return (
@@ -179,22 +277,24 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.profileImageContainer}>
-          <Image
-            source={
-              userData?.photoURL
-                ? { uri: userData.photoURL }
-                : require('../assets/favicon.png')
-            }
-            style={styles.profileImage}
-          />
-          <TouchableOpacity 
-            style={styles.editImageButton}
-            onPress={handlePickImage}
-          >
+        <TouchableOpacity 
+          style={styles.profileImageContainer}
+          onPress={handleProfilePictureUpdate}
+        >
+          {userData?.photoURL || profileImage ? (
+            <Image 
+              source={{ uri: userData?.photoURL || profileImage }} 
+              style={styles.profileImage}
+            />
+          ) : (
+            <View style={styles.profileImagePlaceholder}>
+              <Ionicons name="person" size={40} color="gray" />
+            </View>
+          )}
+          <View style={styles.cameraButton}>
             <Ionicons name="camera" size={20} color="white" />
-          </TouchableOpacity>
-        </View>
+          </View>
+        </TouchableOpacity>
         <Text style={styles.name}>{userData?.name}</Text>
         <Text style={styles.email}>{userData?.email}</Text>
       </View>
@@ -296,6 +396,20 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
+
+      <CameraModal
+        visible={isCameraVisible}
+        onClose={() => setIsCameraVisible(false)}
+        onTakePhoto={handleProfilePhoto}
+      />
+
+      <BottomSheet
+        visible={isBottomSheetVisible}
+        onBackButtonPress={() => setIsBottomSheetVisible(false)}
+        onBackdropPress={() => setIsBottomSheetVisible(false)}
+      >
+        {renderBottomSheet()}
+      </BottomSheet>
     </ScrollView>
   );
 }
@@ -312,22 +426,36 @@ const styles = StyleSheet.create({
   },
   profileImageContainer: {
     position: 'relative',
-  },
-  profileImage: {
     width: 120,
     height: 120,
+    marginBottom: 20,
+    alignSelf: 'center',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
     borderRadius: 60,
   },
-  editImageButton: {
+  profileImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 60,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraButton: {
     position: 'absolute',
-    right: 0,
     bottom: 0,
+    right: 0,
     backgroundColor: theme.colors.primary,
     width: 36,
     height: 36,
     borderRadius: 18,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: 'white',
   },
   name: {
     fontSize: 24,
@@ -448,5 +576,43 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: 'white',
+  },
+  actionSheetTitle: {
+    color: theme.colors.text,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  bottomSheetContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  bottomSheetTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  bottomSheetOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  bottomSheetOptionText: {
+    fontSize: 16,
+    marginLeft: 15,
+    color: theme.colors.text,
+  },
+  cancelOption: {
+    borderBottomWidth: 0,
+    marginTop: 10,
+  },
+  cancelText: {
+    color: theme.colors.secondary,
+    fontWeight: '600',
   },
 }); 

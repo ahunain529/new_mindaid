@@ -12,10 +12,13 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { auth, database } from '../config/firebase';
+import { auth, database, storage } from '../config/firebase';
 import { ref, push, onValue, remove } from 'firebase/database';
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
+import CameraModal from '../components/CameraModal';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const theme = {
   colors: {
@@ -49,6 +52,7 @@ export default function JournalScreen() {
   const [playingAudioId, setPlayingAudioId] = useState(null);
   const [currentSound, setCurrentSound] = useState(null);
   const userId = auth.currentUser?.uid;
+  const [isCameraVisible, setIsCameraVisible] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -223,6 +227,25 @@ export default function JournalScreen() {
     }
   };
 
+  const handleImage = async (photo) => {
+    try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+
+      // Generate a unique key for the image
+      const imageKey = `journal_image_${userId}_${Date.now()}`;
+      
+      // Save image URI to AsyncStorage
+      await AsyncStorage.setItem(imageKey, photo.uri);
+
+      // Set the image URI directly
+      setImage(photo.uri);
+    } catch (error) {
+      console.error('Journal image error:', error);
+      Alert.alert('Error', 'Failed to save image');
+    }
+  };
+
   const renderEntry = ({ item }) => (
     <View style={styles.entryCard}>
       <View style={styles.entryHeader}>
@@ -261,6 +284,20 @@ export default function JournalScreen() {
       )}
     </View>
   );
+
+  const cleanupOldImages = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const imageKeys = keys.filter(key => key.startsWith('journal_image_'));
+      // Keep only last 50 images
+      if (imageKeys.length > 50) {
+        const oldestKeys = imageKeys.sort().slice(0, imageKeys.length - 50);
+        await AsyncStorage.multiRemove(oldestKeys);
+      }
+    } catch (error) {
+      console.error('Error cleaning up old images:', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -331,6 +368,13 @@ export default function JournalScreen() {
             <View style={styles.mediaButtons}>
               <TouchableOpacity 
                 style={styles.mediaButton}
+                onPress={() => setIsCameraVisible(true)}
+              >
+                <Ionicons name="camera" size={24} color={theme.colors.primary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.mediaButton}
                 onPress={pickImage}
               >
                 <Ionicons name="image" size={24} color={theme.colors.primary} />
@@ -389,6 +433,27 @@ export default function JournalScreen() {
           </View>
         </View>
       </Modal>
+
+      {image && (
+        <View style={styles.imagePreview}>
+          <Image 
+            source={{ uri: image }} 
+            style={styles.previewImage} 
+          />
+          <TouchableOpacity
+            style={styles.removeImageButton}
+            onPress={() => setImage(null)}
+          >
+            <Ionicons name="close-circle" size={24} color={theme.colors.secondary} />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <CameraModal
+        visible={isCameraVisible}
+        onClose={() => setIsCameraVisible(false)}
+        onTakePhoto={handleImage}
+      />
     </View>
   );
 }
@@ -634,5 +699,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+  },
+  imagePreview: {
+    position: 'relative',
+    marginVertical: 10,
+    alignSelf: 'center',
+  },
+  previewImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    backgroundColor: 'white',
+    borderRadius: 12,
   },
 }); 

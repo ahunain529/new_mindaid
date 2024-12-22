@@ -6,6 +6,7 @@ import {
   TouchableOpacity, 
   Modal,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
@@ -63,11 +64,22 @@ export default function CameraModal({ visible, onClose, onTakePhoto }) {
         const photo = await cameraRef.current.takePictureAsync({
           quality: 0.7,
           base64: true,
+          exif: true,
         });
-        onTakePhoto(photo);
+        
+        const photoData = {
+          uri: photo.uri,
+          base64: photo.base64,
+          width: photo.width,
+          height: photo.height,
+          type: 'image/jpeg',
+        };
+        
+        onTakePhoto(photoData);
         onClose();
       } catch (error) {
         console.error('Error taking photo:', error);
+        Alert.alert('Error', 'Failed to take photo');
       }
     }
   };
