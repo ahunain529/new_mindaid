@@ -28,7 +28,7 @@ const theme = {
 };
 
 const moodOptions = [
-  {emoji: '', text:''},
+  {emoji: '', text: ''},
   { emoji: '😊', text: 'Great' },
   { emoji: '🙂', text: 'Good' },
   { emoji: '😐', text: 'Okay' },
@@ -191,19 +191,53 @@ export default function JournalScreen() {
   };
 
   const deleteEntry = async (entryId) => {
-    if (userId) {
-      const entryRef = ref(database, `journal_entries/${userId}/${entryId}`);
-      await remove(entryRef);
+    try {
+      Alert.alert(
+        'Delete Entry',
+        'Are you sure you want to delete this entry?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              if (userId) {
+                const entryRef = ref(database, `journal_entries/${userId}/${entryId}`);
+                await remove(entryRef);
+                // Stop audio if it's playing
+                if (playingAudioId === entryId && currentSound) {
+                  await currentSound.unloadAsync();
+                  setPlayingAudioId(null);
+                  setCurrentSound(null);
+                }
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to delete entry');
     }
   };
 
   const renderEntry = ({ item }) => (
     <View style={styles.entryCard}>
       <View style={styles.entryHeader}>
-        <Text style={styles.entryDate}>{item.date}</Text>
-        {item.mood && (
-          <Text style={styles.moodEmoji}>{item.mood.emoji}</Text>
-        )}
+        <View>
+          <Text style={styles.entryDate}>{item.date}</Text>
+          {item.mood && (
+            <Text style={styles.moodEmoji}>{item.mood.emoji}</Text>
+          )}
+        </View>
+        <TouchableOpacity 
+          style={styles.deleteButton}
+          onPress={() => deleteEntry(item.id)}
+        >
+          <Ionicons name="trash-outline" size={20} color={theme.colors.secondary} />
+        </TouchableOpacity>
       </View>
       <Text style={styles.entryTitle}>{item.title}</Text>
       <Text style={styles.entryContent}>{item.content}</Text>
@@ -572,5 +606,33 @@ const styles = StyleSheet.create({
     color: theme.colors.secondary,
     marginLeft: 8,
     fontSize: 14,
+  },
+  entryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+  },
+  entryDate: {
+    fontSize: 14,
+    color: 'gray',
+    marginBottom: 4,
+  },
+  entryCard: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 15,
+    marginHorizontal: 15,
+    marginVertical: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
 }); 

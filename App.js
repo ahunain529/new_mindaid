@@ -20,6 +20,8 @@ import HomeScreen from './screens/HomeScreen';
 import JournalScreen from './screens/JournalScreen';
 import MeditationScreen from './screens/MeditationScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import EmergencyContactsScreen from './screens/EmergencyContactsScreen';
+import GameScreen from './screens/GameScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -47,8 +49,12 @@ function TabNavigator() {
             iconName = focused ? 'book' : 'book-outline';
           } else if (route.name === 'Meditate') {
             iconName = focused ? 'leaf' : 'leaf-outline';
+          } else if (route.name === 'Game') {
+            iconName = focused ? 'game-controller' : 'game-controller-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'Emergency') {
+            iconName = focused ? 'alert-circle' : 'alert-circle-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -97,8 +103,28 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen 
+        name="Game" 
+        component={GameScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Tab.Screen 
         name="Profile" 
         component={ProfileScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Tab.Screen 
+        name="Emergency" 
+        component={EmergencyContactsScreen}
         options={{
           headerStyle: {
             backgroundColor: theme.colors.primary,
