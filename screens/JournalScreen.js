@@ -265,7 +265,13 @@ export default function JournalScreen() {
       <Text style={styles.entryTitle}>{item.title}</Text>
       <Text style={styles.entryContent}>{item.content}</Text>
       {item.image && (
-        <Image source={{ uri: item.image }} style={styles.entryImage} />
+        <View style={styles.imageContainer}>
+          <Image 
+            source={{ uri: item.image }} 
+            style={styles.entryImage}
+            resizeMode="contain"
+          />
+        </View>
       )}
       {item.audioUri && (
         <TouchableOpacity 
@@ -435,10 +441,11 @@ export default function JournalScreen() {
       </Modal>
 
       {image && (
-        <View style={styles.imagePreview}>
+        <View style={styles.imagePreviewContainer}>
           <Image 
             source={{ uri: image }} 
-            style={styles.previewImage} 
+            style={styles.previewImage}
+            resizeMode="contain"
           />
           <TouchableOpacity
             style={styles.removeImageButton}
@@ -716,5 +723,42 @@ const styles = StyleSheet.create({
     right: -10,
     backgroundColor: 'white',
     borderRadius: 12,
+  },
+  imageContainer: {
+    width: '100%',
+    aspectRatio: 16/9,
+    marginVertical: 10,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  entryImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePreviewContainer: {
+    width: '100%',
+    aspectRatio: 16/9,
+    marginVertical: 10,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
   },
 }); 
