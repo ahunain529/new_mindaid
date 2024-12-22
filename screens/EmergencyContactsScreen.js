@@ -9,11 +9,13 @@ import {
   Modal,
   TextInput,
   Linking,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
 import { auth, database } from '../config/firebase';
 import { ref, set, onValue, remove } from 'firebase/database';
+import EmergencyService from '../services/EmergencyService';
 
 const theme = {
   colors: {
@@ -74,6 +76,8 @@ export default function EmergencyContactsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredContacts, setFilteredContacts] = useState([]);
   const userId = auth.currentUser?.uid;
+  const [isEmergency, setIsEmergency] = useState(false);
+  const emergencyScale = useState(new Animated.Value(1))[0];
 
   useEffect(() => {
     loadEmergencyContacts();
@@ -167,6 +171,44 @@ export default function EmergencyContactsScreen() {
     );
   };
 
+  const handleEmergencyPress = async () => {
+    if (isEmergency) return;
+
+    Alert.alert(
+      'Send Emergency SOS',
+      'This will send your current location to all your emergency contacts. Continue?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Send SOS',
+          style: 'destructive',
+          onPress: async () => {
+            setIsEmergency(true);
+            Animated.sequence([
+              Animated.timing(emergencyScale, {
+                toValue: 1.2,
+                duration: 200,
+                useNativeDriver: true,
+              }),
+              Animated.timing(emergencyScale, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+              }),
+            ]).start();
+
+            await EmergencyService.sendEmergencyMessage();
+            setIsEmergency(false);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   const renderEmergencyContact = ({ item }) => (
     <EmergencyContactItem 
       item={item}
@@ -188,8 +230,40 @@ export default function EmergencyContactsScreen() {
     index,
   });
 
+  const EmergencyButton = () => (
+    <Animated.View
+      style={[
+        styles.emergencyButtonContainer,
+        { transform: [{ scale: emergencyScale }] },
+      ]}
+    >
+      <TouchableOpacity
+        style={[
+          styles.emergencyButton,
+          isEmergency && styles.emergencyButtonActive,
+        ]}
+        onPress={handleEmergencyPress}
+      >
+        <View style={styles.sosContent}>
+          <Ionicons
+            name="alert-circle"
+            size={32}
+            color="white"
+          />
+          <Text style={styles.emergencyButtonText}>
+            {isEmergency ? 'SENDING SOS...' : 'SOS EMERGENCY'}
+          </Text>
+          <Text style={styles.emergencySubText}>
+            Press to send location to emergency contacts
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+
   return (
     <View style={styles.container}>
+      <EmergencyButton />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Emergency Contacts</Text>
         <TouchableOpacity 
@@ -448,5 +522,38 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  emergencyButtonContainer: {
+    padding: 15,
+    width: '100%',
+  },
+  emergencyButton: {
+    backgroundColor: theme.colors.secondary,
+    padding: 20,
+    borderRadius: 15,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+  },
+  emergencyButtonActive: {
+    backgroundColor: '#d95555',
+  },
+  sosContent: {
+    alignItems: 'center',
+  },
+  emergencyButtonText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  emergencySubText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    marginTop: 5,
+    textAlign: 'center',
   },
 }); 

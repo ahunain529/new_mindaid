@@ -6,7 +6,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { 
   StyleSheet, 
   View, 
-  StatusBar 
+  StatusBar,
+  AppState,
+  Platform
 } from 'react-native';
 import { 
   Ionicons, 
@@ -22,6 +24,8 @@ import MeditationScreen from './screens/MeditationScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import EmergencyContactsScreen from './screens/EmergencyContactsScreen';
 import GameScreen from './screens/GameScreen';
+
+import EmergencyService from './services/EmergencyService';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();

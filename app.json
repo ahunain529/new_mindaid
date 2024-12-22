@@ -21,7 +21,11 @@
         "NSLocationWhenInUseUsageDescription": "This app needs access to location to find meditation centers near you.",
         "NSLocationAlwaysUsageDescription": "This app needs access to location to find meditation centers near you.",
         "NSAppleMusicUsageDescription": "Allow access to play meditation music from your library",
-        "NSContactsUsageDescription": "Allow access to contacts to add emergency contacts"
+        "NSContactsUsageDescription": "Allow access to contacts to add emergency contacts",
+        "NSLocationWhenInUseUsageDescription": "Your location is needed to send to emergency contacts in case of emergency",
+        "NSLocationAlwaysUsageDescription": "Your location is needed to send to emergency contacts in case of emergency",
+        "NSContactsUsageDescription": "Access to contacts is needed to send emergency messages",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Your location is needed to send to emergency contacts in case of emergency"
       }
     },
     "android": {
@@ -29,7 +33,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#6B48FF"
       },
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE", "READ_CONTACTS", "CALL_PHONE"],
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE", "READ_CONTACTS", "CALL_PHONE", "SEND_SMS", "READ_PHONE_STATE"],
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyA3FzKFHiA7bUcmOaubinG6wqCZt8Dw7Yk"
