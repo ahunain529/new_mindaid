@@ -14,17 +14,17 @@ const firebaseConfig = {
     measurementId: "G-8W1GZDHM3Y"
 };
 
-// Initialize Firebase only if it hasn't been initialized yet
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-
-// Initialize Auth only if it hasn't been initialized
+let app;
 let auth;
-try {
-    auth = getAuth(app);
-} catch (error) {
+
+if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
     auth = initializeAuth(app, {
         persistence: getReactNativePersistence(AsyncStorage)
     });
+} else {
+    app = getApp();
+    auth = getAuth(app);
 }
 
 const database = getDatabase(app);
