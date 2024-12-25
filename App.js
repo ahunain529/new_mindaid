@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { 
@@ -8,7 +8,8 @@ import {
   View, 
   StatusBar,
   AppState,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import { 
   Ionicons, 
@@ -25,6 +26,9 @@ import ProfileScreen from './screens/ProfileScreen';
 import EmergencyContactsScreen from './screens/EmergencyContactsScreen';
 import GameScreen from './screens/GameScreen';
 import DoctorsScreen from './screens/DoctorsScreen';
+import MenstruationTrackerScreen from './screens/MenstruationTrackerScreen';
+import CreatorScreen from './screens/CreatorScreen';
+import MeditationCentersScreen from './screens/MeditationCentersScreen';
 
 import EmergencyService from './services/EmergencyService';
 import AnimatedSplash from './components/AnimatedSplash';
@@ -63,6 +67,12 @@ function TabNavigator() {
             iconName = focused ? 'person' : 'person-outline';
           } else if (route.name === 'Emergency') {
             iconName = focused ? 'alert-circle' : 'alert-circle-outline';
+          } else if (route.name === 'Period') {
+            iconName = focused ? 'calendar' : 'calendar-outline';
+          } else if (route.name === 'Creator') {
+            iconName = focused ? 'create' : 'create-outline';
+          } else if (route.name === 'Meditation Centers') {
+            iconName = focused ? 'map' : 'map-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -72,9 +82,10 @@ function TabNavigator() {
         tabBarStyle: {
           backgroundColor: 'white',
           borderTopWidth: 0,
+          
           elevation: 10,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
+          shadowOffset: { width: 2, height: -2 },
           shadowOpacity: 0.1,
           shadowRadius: 3,
         }
@@ -131,6 +142,16 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen 
+        name="Period" 
+        component={MenstruationTrackerScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Tab.Screen 
         name="Profile" 
         component={ProfileScreen}
         options={{
@@ -148,6 +169,34 @@ function TabNavigator() {
             backgroundColor: theme.colors.primary,
           },
           headerTintColor: '#fff',
+        }}
+      />
+      <Tab.Screen 
+        name="Creator" 
+        component={CreatorScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: '#fff',
+          tabBarButton: () => null,
+        }}
+      />
+      <Tab.Screen 
+        name="Meditation Centers" 
+        component={MeditationCentersScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: '#fff',
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons 
+              name={focused ? 'map' : 'map-outline'} 
+              size={size} 
+              color={color} 
+            />
+          ),
         }}
       />
     </Tab.Navigator>

@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import TicTacToe from '../components/games/TicTacToe';
 import MemoryGame from '../components/games/MemoryGame';
 import WordScramble from '../components/games/WordScramble';
+import Checkers from '../components/games/Checkers';
 
 const theme = {
   colors: {
@@ -43,6 +44,13 @@ const games = [
     icon: 'text-outline',
     description: 'Unscramble the words',
     component: WordScramble,
+  },
+  {
+    id: 'checkers',
+    name: 'Checkers',
+    icon: 'apps-outline',
+    description: 'Classic board game of Checkers',
+    component: Checkers,
   },
 ];
 

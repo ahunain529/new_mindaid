@@ -6,19 +6,20 @@
     "orientation": "portrait",
     "icon": "./assets/do.png",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
+    "splash": {
+      "image": "./assets/do.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#6B48FF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "config": {
-        "googleMapsApiKey": "AIzaSyA3FzKFHiA7bUcmOaubinG6wqCZt8Dw7Yk"
-      },
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app needs access to location to find meditation centers near you.",
-        "NSLocationAlwaysUsageDescription": "This app needs access to location to find meditation centers near you.",
-        "NSAppleMusicUsageDescription": "Allow access to play meditation music from your library",
-        "NSContactsUsageDescription": "Allow access to contacts to add emergency contacts",
         "NSLocationWhenInUseUsageDescription": "Your location is needed to send to emergency contacts in case of emergency",
         "NSLocationAlwaysUsageDescription": "Your location is needed to send to emergency contacts in case of emergency",
+        "NSAppleMusicUsageDescription": "Allow access to play meditation music from your library",
         "NSContactsUsageDescription": "Access to contacts is needed to send emergency messages",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Your location is needed to send to emergency contacts in case of emergency"
       }
@@ -28,20 +29,20 @@
         "foregroundImage": "./assets/do.png",
         "backgroundColor": "#6B48FF"
       },
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE", "READ_CONTACTS", "CALL_PHONE", "SEND_SMS", "READ_PHONE_STATE", "CAMERA"],
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyA3FzKFHiA7bUcmOaubinG6wqCZt8Dw7Yk"
-        }
-      }
-    },
-    "scheme": "your-scheme",
-    "web": {
-      "config": {
-        "spotify": {
-          "clientId": "your_client_id"
-        }
-      }
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_CONTACTS",
+        "CALL_PHONE",
+        "SEND_SMS",
+        "READ_PHONE_STATE",
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.k213397.mindAid"
     },
     "plugins": [
       [
@@ -50,6 +51,12 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to take photos for your profile and journal."
         }
       ]
-    ]
+    ],
+    "newArchEnabled": true,
+    "extra": {
+      "eas": {
+        "projectId": "d3ab936e-4150-4496-b441-259ce157eb38"
+      }
+    }
   }
 }

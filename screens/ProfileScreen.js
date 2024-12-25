@@ -18,6 +18,7 @@ import { signOut, updateEmail, updatePassword } from 'firebase/auth';
 import CameraModal from '../components/CameraModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomSheet } from 'react-native-btr';
+import { useNavigation } from '@react-navigation/native';
 
 const theme = {
   colors: {
@@ -41,6 +42,7 @@ export default function ProfileScreen() {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const userId = auth.currentUser?.uid;
+  const navigation = useNavigation();
 
   useEffect(() => {
     if (!userId) return;
@@ -266,6 +268,29 @@ export default function ProfileScreen() {
     </View>
   );
 
+  const menuItems = [
+    {
+      icon: 'person-outline',
+      title: 'Edit Name',
+      onPress: () => handleEditProfile('name'),
+    },
+    {
+      icon: 'mail-outline',
+      title: 'Change Email',
+      onPress: () => handleEditProfile('email'),
+    },
+    {
+      icon: 'lock-closed-outline',
+      title: 'Change Password',
+      onPress: () => handleEditProfile('password'),
+    },
+    {
+      icon: 'person-circle-outline',
+      title: 'App Creator',
+      onPress: () => navigation.navigate('Creator'),
+    },
+  ];
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -316,32 +341,17 @@ export default function ProfileScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Settings</Text>
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => handleEditProfile('name')}
-        >
-          <Ionicons name="person-outline" size={24} color={theme.colors.text} />
-          <Text style={styles.menuText}>Edit Name</Text>
-          <Ionicons name="chevron-forward" size={24} color="gray" />
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => handleEditProfile('email')}
-        >
-          <Ionicons name="mail-outline" size={24} color={theme.colors.text} />
-          <Text style={styles.menuText}>Change Email</Text>
-          <Ionicons name="chevron-forward" size={24} color="gray" />
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => handleEditProfile('password')}
-        >
-          <Ionicons name="lock-closed-outline" size={24} color={theme.colors.text} />
-          <Text style={styles.menuText}>Change Password</Text>
-          <Ionicons name="chevron-forward" size={24} color="gray" />
-        </TouchableOpacity>
+        {menuItems.map((item, index) => (
+          <TouchableOpacity 
+            key={index}
+            style={styles.menuItem}
+            onPress={item.onPress}
+          >
+            <Ionicons name={item.icon} size={24} color={theme.colors.text} />
+            <Text style={styles.menuText}>{item.title}</Text>
+            <Ionicons name="chevron-forward" size={24} color="gray" />
+          </TouchableOpacity>
+        ))}
       </View>
 
       <TouchableOpacity 
